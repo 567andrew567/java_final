@@ -52,7 +52,10 @@ class Block {
         return this.type;
     }
 
-    public void move(KeyEvent event) {
+    public void move(KeyEvent event, Map map) {
+        int ori_x = this.x;
+        int ori_y = this.y;
+        int ori_type = this.type;
         switch (event.getKeyCode()) {
             case KeyEvent.VK_LEFT:
                 if (this.type == 0) {
@@ -124,6 +127,29 @@ class Block {
                 break;
             default:
                 return;
+        }
+
+        if (this.type == 0) {
+            if (map.get_block(this.x, this.y) == 1) {
+                this.x = ori_x;
+                this.y = ori_y;
+                this.type = ori_type;
+                return;
+            }
+        } else if (this.type == 1) {
+            if (map.get_block(this.x, this.y) == 1 || map.get_block(this.x + 1, this.y) == 1) {
+                this.x = ori_x;
+                this.y = ori_y;
+                this.type = ori_type;
+                return;
+            }
+        } else if (this.type == 2) {
+            if (map.get_block(this.x, this.y) == 1 || map.get_block(this.x, this.y + 1) == 1) {
+                this.x = ori_x;
+                this.y = ori_y;
+                this.type = ori_type;
+                return;
+            }
         }
 
         System.out.println("x: " + this.x + " y: " + this.y + " type: " + this.type);
@@ -254,7 +280,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
 
     @Override
     public void keyPressed(KeyEvent e) {
-        BLOCK.move(e);
+        BLOCK.move(e, MAP);
         repaint();
 
     }

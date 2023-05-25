@@ -130,6 +130,49 @@ class Block {
     }
 }
 
+class Map {
+
+    private int map_size_row;
+    private int map_size_col;
+
+    private int[][] map;
+
+    Map(int map_size_row, int map_size_col) {
+        this.map_size_row = map_size_row;
+        this.map_size_col = map_size_col;
+        this.map = new int[map_size_row][map_size_col];
+    }
+
+    public int get_map_size_row() {
+        return this.map_size_row;
+    }
+
+    public int get_map_size_col() {
+        return this.map_size_col;
+    }
+
+    public void set_map_size_row(int map_size_row) {
+        this.map_size_row = map_size_row;
+        this.map = new int[map_size_row][map_size_col];
+    }
+
+    public void set_map_size_y(int map_size_col) {
+        this.map_size_col = map_size_col;
+        this.map = new int[map_size_row][map_size_col];
+    }
+
+    public void set_block(int x, int y, int type) {
+        this.map[y][x] = type;
+    }
+
+    public int get_block(int x, int y) {
+        if (x < 0 || x >= this.map_size_col || y < 0 || y >= this.map_size_row)
+            return -1;
+        return this.map[y][x];
+    }
+
+}
+
 class final_game_panel extends JPanel implements KeyListener, MouseMotionListener {
 
     private static int MAP_BLOCK_SIZE = 20;
@@ -140,6 +183,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
     private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE;
 
     private static Block BLOCK = new Block(15, 10, MAP_COLS, MAP_ROWS);
+    private static Map MAP = new Map(MAP_ROWS, MAP_COLS);
 
     final_game_panel() {
         super();
@@ -148,11 +192,21 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         this.requestFocusInWindow();
         this.addMouseMotionListener(this);
         this.addKeyListener(this);
-        repaint();
         init_game();
     }
 
     private void init_game() {
+        // init map
+        Random random = new Random();
+        random.setSeed(System.currentTimeMillis());
+        int tmp_x, tmp_y;
+        for (int i = 0; i < 10; i++) {
+            do {
+                tmp_x = random.nextInt(MAP_COLS);
+                tmp_y = random.nextInt(MAP_ROWS);
+            } while (MAP.get_block(tmp_x, tmp_y) != 0);
+            MAP.set_block(tmp_x, tmp_y, 1);
+        }
         repaint();
     }
 
@@ -164,8 +218,10 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
                         || BLOCK.get_type() == 1 && i == BLOCK.get_x() + 1 && j == BLOCK.get_y()
                         || BLOCK.get_type() == 2 && i == BLOCK.get_x() && j == BLOCK.get_y() + 1)
                     g.setColor(Color.RED);
-                else
+                else if (MAP.get_block(i, j) == 0)
                     g.setColor(Color.WHITE);
+                else if (MAP.get_block(i, j) == 1)
+                    g.setColor(Color.BLACK);
                 g.fillRect(i * MAP_BLOCK_SIZE, j * MAP_BLOCK_SIZE, MAP_BLOCK_SIZE, MAP_BLOCK_SIZE);
                 g.setColor(Color.BLACK);
                 g.drawRect(i * MAP_BLOCK_SIZE, j * MAP_BLOCK_SIZE, MAP_BLOCK_SIZE, MAP_BLOCK_SIZE);

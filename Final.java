@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
@@ -27,6 +30,8 @@ public class Final {
 }
 
 class Block {
+    private int start_x;
+    private int start_y;
     private int x;
     private int y;
     private int map_size_x;
@@ -34,10 +39,28 @@ class Block {
     private int type = 0; // 0: one block, 1: two blocks (horizontal), 2: two blocks (vertical)
 
     Block(int x, int y, int map_size_x, int map_size_y) {
+        this.start_x = x;
+        this.start_y = y;
         this.x = x;
         this.y = y;
         this.map_size_x = map_size_x;
         this.map_size_y = map_size_y;
+    }
+
+    public void init(int x, int y, int map_size_x, int map_size_y) {
+        this.start_x = x;
+        this.start_y = y;
+        this.x = this.start_x;
+        this.y = this.start_y;
+        this.map_size_x = map_size_x;
+        this.map_size_y = map_size_y;
+        this.type = 0;
+    }
+
+    public void goto_start() {
+        this.x = this.start_x;
+        this.y = this.start_y;
+        this.type = 0;
     }
 
     public int get_x() {
@@ -52,11 +75,11 @@ class Block {
         return this.type;
     }
 
-    public void move(KeyEvent event, Map map) {
+    public void move(int event, Map map) {
         int ori_x = this.x;
         int ori_y = this.y;
         int ori_type = this.type;
-        switch (event.getKeyCode()) {
+        switch (event) {
             case KeyEvent.VK_LEFT:
                 if (this.type == 0) {
                     if (x < 2)
@@ -152,7 +175,25 @@ class Block {
             }
         }
 
-        System.out.println("x: " + this.x + " y: " + this.y + " type: " + this.type);
+        // System.out.println("x: " + this.x + " y: " + this.y + " type: " + this.type);
+    }
+
+    public boolean is_fall_in_hole(Map map) {
+        if (this.type == 0) {
+            if (map.get_block(this.x, this.y) == 2)
+                return true;
+        } else if (this.type == 1) {
+            if (map.get_block(this.x, this.y) == 2 && map.get_block(this.x + 1, this.y) == 2)
+                return true;
+        } else if (this.type == 2) {
+            if (map.get_block(this.x, this.y) == 2 && map.get_block(this.x, this.y + 1) == 2)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean is_finish(Map map) {
+        return this.type == 0 && map.get_block(this.x, this.y) == 4;
     }
 }
 
@@ -162,6 +203,11 @@ class Map {
     private int map_size_col;
 
     private int[][] map;
+
+    private int[] x_path = { 0, 1, 0, -1 };
+    private int[] y_path = { -1, 0, 1, 0 };
+
+    private boolean[][] visited;
 
     Map(int map_size_row, int map_size_col) {
         this.map_size_row = map_size_row;
@@ -191,10 +237,135 @@ class Map {
         this.map[y][x] = type;
     }
 
+    public void set_block(Block block, int type) {
+        if (block.get_type() == 0) {
+            this.set_block(block.get_x(), block.get_y(), type);
+        } else if (block.get_type() == 1) {
+            this.set_block(block.get_x(), block.get_y(), type);
+            this.set_block(block.get_x() + 1, block.get_y(), type);
+        } else if (block.get_type() == 2) {
+            this.set_block(block.get_x(), block.get_y(), type);
+            this.set_block(block.get_x(), block.get_y() + 1, type);
+        }
+    }
+
     public int get_block(int x, int y) {
         if (x < 0 || x >= this.map_size_col || y < 0 || y >= this.map_size_row)
             return -1;
         return this.map[y][x];
+    }
+
+    public void create_map(int x, int y, int steps) {
+        boolean flag = false;
+        int keys[] = { KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN };
+        ArrayList<ArrayList<Integer>> list = new ArrayList<ArrayList<Integer>>();
+        ArrayList<Integer> tmp = new ArrayList<Integer>();
+        Random random = new Random();
+        do {
+            random.setSeed(System.currentTimeMillis());
+            this.init();
+            list.clear();
+            Block block = new Block(x, y,
+                    this.map_size_col, this.map_size_row);
+            // System.out.println("create x: " + block.get_x() + " y: " + block.get_y() + "
+            // type: " + block.get_type());
+
+            list.add(new ArrayList<Integer>(Arrays.asList(block.get_x(), block.get_y(), block.get_type())));
+            this.set_block(block, 3);
+            int c = 0;
+            for (int i = 0; i < steps || list.get(list.size() - 1).get(2) != 0; i++) {
+                c = 0;
+                do {
+                    block.move(keys[random.nextInt(4)], this);
+                    tmp.clear();
+                    tmp.add(block.get_x());
+                    tmp.add(block.get_y());
+                    tmp.add(block.get_type());
+                    c++;
+                } while (list.contains(tmp) && c < 10);
+                if (c >= 10) {
+                    flag = false;
+                    break;
+                }
+
+                // System.out.println("move x: " + block.get_x() + " y: " + block.get_y() + "
+                // type: " + block.get_type());
+                list.add(new ArrayList<Integer>(tmp));
+                this.set_block(block, 1);
+                flag = true;
+            }
+
+            if (!flag) {
+                continue;
+            }
+
+            set_block(block, 4);
+
+            // System.out.println("list size: " + list.size());
+            // for (int i = 0; i < list.size(); i++) {
+            // tmp = list.get(i);
+            // System.out.println("x: " + tmp.get(0) + " y: " + tmp.get(1) + " type: " +
+            // tmp.get(2));
+            // }
+
+            for (int i = 0; i < this.map_size_row; i++) {
+                for (int j = 0; j < this.map_size_col; j++) {
+                    if (this.map[i][j] == 1)
+                        this.map[i][j] = -1;
+                }
+            }
+
+            for (int i = 0; i < this.map_size_row; i++) {
+                for (int j = 0; j < this.map_size_col; j++) {
+                    if (this.map[i][j] == 0) {
+                        visited = new boolean[this.map_size_row][this.map_size_col];
+                        if (check_out(j, i, 0)) {
+                            fill_map(j, i, 1);
+                        } else {
+                            fill_map(j, i, 2);
+                        }
+                    }
+                }
+            }
+
+            // System.out.println("create finish");
+
+        } while (!flag);
+
+    }
+
+    private boolean check_out(int x, int y, int co) {
+        if (x < 0 || x >= this.map_size_col || y < 0 || y >= this.map_size_row)
+            return false;
+        if (this.map[y][x] != 0 || visited[y][x])
+            return false;
+        if (co >= 30)
+            return true;
+        visited[y][x] = true;
+        for (int i = 0; i < 4; i++) {
+            if (check_out(x + x_path[i], y + y_path[i], ++co))
+                return true;
+        }
+        return false;
+    }
+
+    private void fill_map(int x, int y, int type) {
+        if (x < 0 || x >= this.map_size_col || y < 0 || y >= this.map_size_row)
+            return;
+        if (this.map[y][x] == 0) {
+            this.map[y][x] = type;
+            for (int i = 0; i < 4; i++) {
+                fill_map(x + x_path[i], y + y_path[i], type);
+            }
+        }
+    }
+
+    public void init() {
+        for (int i = 0; i < this.map_size_row; i++) {
+            for (int j = 0; j < this.map_size_col; j++) {
+                this.map[i][j] = 0;
+            }
+        }
     }
 
 }
@@ -202,8 +373,8 @@ class Map {
 class final_game_panel extends JPanel implements KeyListener, MouseMotionListener {
 
     private static int MAP_BLOCK_SIZE = 20;
-    private static int MAP_ROWS = 20;
-    private static int MAP_COLS = 30;
+    private static int MAP_ROWS = 40;
+    private static int MAP_COLS = 60;
 
     private static int SCREEN_WIDTH = MAP_COLS * MAP_BLOCK_SIZE;
     private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE;
@@ -225,14 +396,12 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         // init map
         Random random = new Random();
         random.setSeed(System.currentTimeMillis());
-        int tmp_x, tmp_y;
-        for (int i = 0; i < 10; i++) {
-            do {
-                tmp_x = random.nextInt(MAP_COLS);
-                tmp_y = random.nextInt(MAP_ROWS);
-            } while (MAP.get_block(tmp_x, tmp_y) != 0);
-            MAP.set_block(tmp_x, tmp_y, 1);
-        }
+        int x = random.nextInt(MAP_COLS / 2) + MAP_COLS / 4,
+                y = random.nextInt(MAP_ROWS / 2) + MAP_ROWS / 4;
+        System.out.println("start pos x: " + x + " y: " + y);
+        MAP.create_map(x, y, 150);
+        BLOCK.init(x, y, MAP_COLS, MAP_ROWS);
+        // MAP.init();
         repaint();
     }
 
@@ -243,11 +412,19 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
                 if (i == BLOCK.get_x() && j == BLOCK.get_y()
                         || BLOCK.get_type() == 1 && i == BLOCK.get_x() + 1 && j == BLOCK.get_y()
                         || BLOCK.get_type() == 2 && i == BLOCK.get_x() && j == BLOCK.get_y() + 1)
-                    g.setColor(Color.RED);
-                else if (MAP.get_block(i, j) == 0)
+                    g.setColor(new Color(117, 64, 8));
+                else if (MAP.get_block(i, j) == 0 || MAP.get_block(i, j) == -1)// path
                     g.setColor(Color.WHITE);
-                else if (MAP.get_block(i, j) == 1)
+                else if (MAP.get_block(i, j) == 1)// wall
                     g.setColor(Color.BLACK);
+                else if (MAP.get_block(i, j) == 2)// hole
+                    g.setColor(Color.GRAY);
+                else if (MAP.get_block(i, j) == 3)// start
+                    g.setColor(Color.GREEN);
+                else if (MAP.get_block(i, j) == 4)// finish
+                    g.setColor(Color.yellow);
+                else
+                    g.setColor(Color.BLUE);
                 g.fillRect(i * MAP_BLOCK_SIZE, j * MAP_BLOCK_SIZE, MAP_BLOCK_SIZE, MAP_BLOCK_SIZE);
                 g.setColor(Color.BLACK);
                 g.drawRect(i * MAP_BLOCK_SIZE, j * MAP_BLOCK_SIZE, MAP_BLOCK_SIZE, MAP_BLOCK_SIZE);
@@ -280,7 +457,15 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
 
     @Override
     public void keyPressed(KeyEvent e) {
-        BLOCK.move(e, MAP);
+        BLOCK.move(e.getKeyCode(), MAP);
+        if (BLOCK.is_fall_in_hole(MAP)) {
+            System.out.println("fall in hole");
+            // init_game();
+            BLOCK.goto_start();
+        } else if (BLOCK.is_finish(MAP)) {
+            System.out.println("You Win");
+            init_game();
+        }
         repaint();
 
     }

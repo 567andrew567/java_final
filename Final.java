@@ -399,7 +399,8 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         JButton restartButton = new JButton("重新開始");
         restartButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                init_game();
+                BLOCK.goto_start();
+                repaint();
             }
         });
 
@@ -548,7 +549,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_R)
-            init_game();
+            BLOCK.goto_start();
         else
             BLOCK.move(e.getKeyCode(), MAP);
         if (BLOCK.is_fall_in_hole(MAP)) {

@@ -390,6 +390,37 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         this.addMouseMotionListener(this);
         this.addKeyListener(this);
         init_game();
+         // Add buttons
+         JButton restartButton = new JButton("重新開始");
+         restartButton.addActionListener(new ActionListener() {
+             public void actionPerformed(ActionEvent e) {
+                 init_game();
+             }
+         });
+ 
+         JButton difficultyButton = new JButton("選擇難度");
+         difficultyButton.addActionListener(new ActionListener() {
+             public void actionPerformed(ActionEvent e) {
+                 // 難度
+
+             }
+         });
+ 
+         JButton exitButton = new JButton("離開");
+         exitButton.addActionListener(new ActionListener() {
+             public void actionPerformed(ActionEvent e) {
+                 System.exit(0);
+             }
+         });
+ 
+         JPanel buttonPanel = new JPanel();
+         buttonPanel.add(restartButton);
+         buttonPanel.add(difficultyButton);
+         buttonPanel.add(exitButton);
+ 
+          // Set layout for the main panel
+        setLayout(new BorderLayout());
+        add(buttonPanel, BorderLayout.NORTH);
     }
 
     private void init_game() {

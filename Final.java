@@ -80,7 +80,7 @@ class Block {
         int ori_y = this.y;
         int ori_type = this.type;
         switch (event) {
-            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
                 if (this.type == 0) {
                     if (x < 2)
                         return;
@@ -97,7 +97,7 @@ class Block {
                     this.x--;
                 }
                 break;
-            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
                 if (this.type == 0) {
                     if (x > map_size_x - 3)
                         return;
@@ -114,7 +114,7 @@ class Block {
                     this.x++;
                 }
                 break;
-            case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
                 if (this.type == 0) {
                     if (y < 2)
                         return;
@@ -131,7 +131,7 @@ class Block {
                     this.type = 0;
                 }
                 break;
-            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_S:
                 if (this.type == 0) {
                     if (y > map_size_y - 3)
                         return;
@@ -209,6 +209,8 @@ class Map {
 
     private boolean[][] visited;
 
+    private int keys[] = { KeyEvent.VK_W, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_A };
+
     Map(int map_size_row, int map_size_col) {
         this.map_size_row = map_size_row;
         this.map_size_col = map_size_col;
@@ -257,7 +259,7 @@ class Map {
 
     public void create_map(int x, int y, int steps) {
         boolean flag = false;
-        int keys[] = { KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN };
+
         ArrayList<ArrayList<Integer>> list = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> tmp = new ArrayList<Integer>();
         Random random = new Random();
@@ -376,11 +378,14 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
     private static int MAP_ROWS = 40;
     private static int MAP_COLS = 60;
 
+    private static int TOOLBAR_HEIGHT = 50;
     private static int SCREEN_WIDTH = MAP_COLS * MAP_BLOCK_SIZE;
-    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE;
+    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE + TOOLBAR_HEIGHT;
 
     private static Block BLOCK = new Block(15, 10, MAP_COLS, MAP_ROWS);
     private static Map MAP = new Map(MAP_ROWS, MAP_COLS);
+
+    private static int DIFFICULTY = 50;
 
     final_game_panel() {
         super();
@@ -390,37 +395,91 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         this.addMouseMotionListener(this);
         this.addKeyListener(this);
         init_game();
-         // Add buttons
-         JButton restartButton = new JButton("重新開始");
-         restartButton.addActionListener(new ActionListener() {
-             public void actionPerformed(ActionEvent e) {
-                 init_game();
-             }
-         });
- 
-         JButton difficultyButton = new JButton("選擇難度");
-         difficultyButton.addActionListener(new ActionListener() {
-             public void actionPerformed(ActionEvent e) {
-                 // 難度
+        // Add buttons
+        JButton restartButton = new JButton("重新開始");
+        restartButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                init_game();
+            }
+        });
 
-             }
-         });
- 
-         JButton exitButton = new JButton("離開");
-         exitButton.addActionListener(new ActionListener() {
-             public void actionPerformed(ActionEvent e) {
-                 System.exit(0);
-             }
-         });
- 
-         JPanel buttonPanel = new JPanel();
-         buttonPanel.add(restartButton);
-         buttonPanel.add(difficultyButton);
-         buttonPanel.add(exitButton);
- 
-          // Set layout for the main panel
+        JButton difficultyButton = new JButton("選擇難度");
+        difficultyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // 難度
+
+                // create a dialog Box
+                final JDialog d = new JDialog();
+                // create a label
+                JLabel l = new JLabel("選擇難度");
+                // create a new buttons
+                JButton b1 = new JButton("簡單");
+                JButton b2 = new JButton("中等");
+                JButton b3 = new JButton("困難");
+                // create a panel
+                JPanel p = new JPanel();
+                // add action listeners
+                b1.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 50;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                b2.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 100;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                b3.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 150;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                // add buttons to panel
+                p.add(b1);
+                p.add(b2);
+                p.add(b3);
+                // add panel to dialog
+                d.add(l, BorderLayout.NORTH);
+                d.add(p, BorderLayout.CENTER);
+                // setsize of dialog
+                d.setSize(300, 300);
+                // set dialog in center
+                d.setLocationRelativeTo(null);
+                // set visibility of dialog
+                d.setVisible(true);
+
+            }
+        });
+
+        JButton exitButton = new JButton("離開");
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        // Add buttons to the tool bar
+        JPanel buttonPanel = new JPanel();
+
+        // buttonPanel.setFloatable(false);
+        buttonPanel.add(restartButton);
+        buttonPanel.add(difficultyButton);
+        buttonPanel.add(exitButton);
+
+        // Set layout for the main panel
         setLayout(new BorderLayout());
-        add(buttonPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.SOUTH);
+        // set tool bar height
+        buttonPanel.setPreferredSize(new Dimension(SCREEN_WIDTH, TOOLBAR_HEIGHT));
     }
 
     private void init_game() {
@@ -430,7 +489,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         int x = random.nextInt(MAP_COLS / 2) + MAP_COLS / 4,
                 y = random.nextInt(MAP_ROWS / 2) + MAP_ROWS / 4;
         System.out.println("start pos x: " + x + " y: " + y);
-        MAP.create_map(x, y, 150);
+        MAP.create_map(x, y, DIFFICULTY);
         BLOCK.init(x, y, MAP_COLS, MAP_ROWS);
         // MAP.init();
         repaint();
@@ -488,7 +547,10 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
 
     @Override
     public void keyPressed(KeyEvent e) {
-        BLOCK.move(e.getKeyCode(), MAP);
+        if (e.getKeyCode() == KeyEvent.VK_R)
+            init_game();
+        else
+            BLOCK.move(e.getKeyCode(), MAP);
         if (BLOCK.is_fall_in_hole(MAP)) {
             System.out.println("fall in hole");
             // init_game();

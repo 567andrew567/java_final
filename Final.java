@@ -571,6 +571,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             // System.out.println("fall in hole");
             // dialog
             final JDialog d = new JDialog();
+            d.setTitle("遊戲結束");
             // create a label
             JLabel l = new JLabel("You fall in hole");
 
@@ -614,6 +615,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             d.setLocationRelativeTo(null);
             // set visibility of dialog
             d.setVisible(true);
+            d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
             requestFocusInWindow();
 
             BLOCK.goto_start();
@@ -622,6 +624,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             // System.out.println("You Win");
             // dialog
             final JDialog d = new JDialog();
+            d.setTitle("You Win");
             // create a label
             JLabel l = new JLabel("You Win");
             // create a new buttons
@@ -668,9 +671,11 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             d.setLocationRelativeTo(null);
             // set visibility of dialog
             d.setVisible(true);
+            // remove exit button
+            d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
             requestFocusInWindow();
-        }
 
+        }
         repaint();
 
     }

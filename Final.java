@@ -25,7 +25,6 @@ public class Final {
         frm.pack();
         frm.setLocationRelativeTo(null);
         frm.setVisible(true);
-
     }
 }
 
@@ -375,13 +374,13 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
     private static int MAP_BLOCK_SIZE = 20;
     private static int MAP_ROWS = 40;
     private static int MAP_COLS = 60;
-
+    private static int TOOLBAR_HEIGHT = 50;
     private static int SCREEN_WIDTH = MAP_COLS * MAP_BLOCK_SIZE;
-    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE;
+    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE + TOOLBAR_HEIGHT;;
 
     private static Block BLOCK = new Block(15, 10, MAP_COLS, MAP_ROWS);
     private static Map MAP = new Map(MAP_ROWS, MAP_COLS);
-
+    private static int DIFFICULTY = 50;
     final_game_panel() {
         super();
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
@@ -389,22 +388,75 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         this.requestFocusInWindow();
         this.addMouseMotionListener(this);
         this.addKeyListener(this);
+        this.setFocusable(true);
+        this.requestFocusInWindow();
         init_game();
          // Add buttons
          JButton restartButton = new JButton("重新開始");
          restartButton.addActionListener(new ActionListener() {
              public void actionPerformed(ActionEvent e) {
-                 init_game();
+                 BLOCK.goto_start();
+                 requestFocusInWindow();
+                 repaint();
              }
          });
  
          JButton difficultyButton = new JButton("選擇難度");
-         difficultyButton.addActionListener(new ActionListener() {
-             public void actionPerformed(ActionEvent e) {
-                 // 難度
+        difficultyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // 難度
 
-             }
-         });
+                // create a dialog Box
+                final JDialog d = new JDialog();
+                // create a label
+                JLabel l = new JLabel("選擇難度");
+                // create a new buttons
+                JButton b1 = new JButton("簡單");
+                JButton b2 = new JButton("中等");
+                JButton b3 = new JButton("困難");
+                // create a panel
+                JPanel p = new JPanel();
+                // add action listeners
+                b1.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 50;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                b2.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 100;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                b3.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        DIFFICULTY = 150;
+                        d.setVisible(false);
+                        init_game();
+                    }
+                });
+
+                // add buttons to panel
+                p.add(b1);
+                p.add(b2);
+                p.add(b3);
+                // add panel to dialog
+                d.add(l, BorderLayout.NORTH);
+                d.add(p, BorderLayout.CENTER);
+                // setsize of dialog
+                d.setSize(300, 300);
+                // set dialog in center
+                d.setLocationRelativeTo(null);
+                // set visibility of dialog
+                d.setVisible(true);
+                requestFocusInWindow();
+            }
+        });
  
          JButton exitButton = new JButton("離開");
          exitButton.addActionListener(new ActionListener() {
@@ -419,8 +471,10 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
          buttonPanel.add(exitButton);
  
           // Set layout for the main panel
-        setLayout(new BorderLayout());
-        add(buttonPanel, BorderLayout.NORTH);
+          setLayout(new BorderLayout());
+          add(buttonPanel, BorderLayout.SOUTH);
+          // set tool bar height
+          buttonPanel.setPreferredSize(new Dimension(SCREEN_WIDTH, TOOLBAR_HEIGHT));
     }
 
     private void init_game() {

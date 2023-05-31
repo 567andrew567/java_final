@@ -25,7 +25,6 @@ public class Final {
         frm.pack();
         frm.setLocationRelativeTo(null);
         frm.setVisible(true);
-
     }
 }
 
@@ -37,6 +36,7 @@ class Block {
     private int map_size_x;
     private int map_size_y;
     private int type = 0; // 0: one block, 1: two blocks (horizontal), 2: two blocks (vertical)
+    private int step = 0;
 
     Block(int x, int y, int map_size_x, int map_size_y) {
         this.start_x = x;
@@ -45,6 +45,7 @@ class Block {
         this.y = y;
         this.map_size_x = map_size_x;
         this.map_size_y = map_size_y;
+        step = 0;
     }
 
     public void init(int x, int y, int map_size_x, int map_size_y) {
@@ -55,12 +56,14 @@ class Block {
         this.map_size_x = map_size_x;
         this.map_size_y = map_size_y;
         this.type = 0;
+        step = 0;
     }
 
     public void goto_start() {
         this.x = this.start_x;
         this.y = this.start_y;
         this.type = 0;
+        step = 0;
     }
 
     public int get_x() {
@@ -75,12 +78,16 @@ class Block {
         return this.type;
     }
 
+    public int get_step() {
+        return this.step;
+    }
+
     public void move(int event, Map map) {
         int ori_x = this.x;
         int ori_y = this.y;
         int ori_type = this.type;
         switch (event) {
-            case KeyEvent.VK_A:
+            case KeyEvent.VK_LEFT:
                 if (this.type == 0) {
                     if (x < 2)
                         return;
@@ -97,7 +104,7 @@ class Block {
                     this.x--;
                 }
                 break;
-            case KeyEvent.VK_D:
+            case KeyEvent.VK_RIGHT:
                 if (this.type == 0) {
                     if (x > map_size_x - 3)
                         return;
@@ -114,7 +121,7 @@ class Block {
                     this.x++;
                 }
                 break;
-            case KeyEvent.VK_W:
+            case KeyEvent.VK_UP:
                 if (this.type == 0) {
                     if (y < 2)
                         return;
@@ -131,7 +138,7 @@ class Block {
                     this.type = 0;
                 }
                 break;
-            case KeyEvent.VK_S:
+            case KeyEvent.VK_DOWN:
                 if (this.type == 0) {
                     if (y > map_size_y - 3)
                         return;
@@ -175,6 +182,8 @@ class Block {
             }
         }
 
+        step++;
+
         // System.out.println("x: " + this.x + " y: " + this.y + " type: " + this.type);
     }
 
@@ -208,8 +217,6 @@ class Map {
     private int[] y_path = { -1, 0, 1, 0 };
 
     private boolean[][] visited;
-
-    private int keys[] = { KeyEvent.VK_W, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_A };
 
     Map(int map_size_row, int map_size_col) {
         this.map_size_row = map_size_row;
@@ -259,7 +266,7 @@ class Map {
 
     public void create_map(int x, int y, int steps) {
         boolean flag = false;
-
+        int keys[] = { KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN };
         ArrayList<ArrayList<Integer>> list = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> tmp = new ArrayList<Integer>();
         Random random = new Random();
@@ -341,7 +348,7 @@ class Map {
             return false;
         if (this.map[y][x] != 0 || visited[y][x])
             return false;
-        if (co >= 30)
+        if (co >= 50)
             return true;
         visited[y][x] = true;
         for (int i = 0; i < 4; i++) {
@@ -377,15 +384,15 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
     private static int MAP_BLOCK_SIZE = 20;
     private static int MAP_ROWS = 40;
     private static int MAP_COLS = 60;
-
     private static int TOOLBAR_HEIGHT = 50;
     private static int SCREEN_WIDTH = MAP_COLS * MAP_BLOCK_SIZE;
-    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE + TOOLBAR_HEIGHT;
+    private static int SCREEN_HEIGHT = MAP_ROWS * MAP_BLOCK_SIZE + TOOLBAR_HEIGHT;;
 
     private static Block BLOCK = new Block(15, 10, MAP_COLS, MAP_ROWS);
     private static Map MAP = new Map(MAP_ROWS, MAP_COLS);
-
     private static int DIFFICULTY = 50;
+    private static int SCORE = 0;
+    private static JLabel STEPLABEL = new JLabel("分數: " + SCORE);
 
     final_game_panel() {
         super();
@@ -394,12 +401,19 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
         this.requestFocusInWindow();
         this.addMouseMotionListener(this);
         this.addKeyListener(this);
+        this.setFocusable(true);
+        this.requestFocusInWindow();
         init_game();
+
+        // add score label
+
         // Add buttons
         JButton restartButton = new JButton("重新開始");
         restartButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 BLOCK.goto_start();
+                requestFocusInWindow();
+
                 repaint();
             }
         });
@@ -457,7 +471,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
                 d.setLocationRelativeTo(null);
                 // set visibility of dialog
                 d.setVisible(true);
-
+                requestFocusInWindow();
             }
         });
 
@@ -468,10 +482,8 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             }
         });
 
-        // Add buttons to the tool bar
         JPanel buttonPanel = new JPanel();
-
-        // buttonPanel.setFloatable(false);
+        buttonPanel.add(STEPLABEL);
         buttonPanel.add(restartButton);
         buttonPanel.add(difficultyButton);
         buttonPanel.add(exitButton);
@@ -521,6 +533,7 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
                 g.drawRect(i * MAP_BLOCK_SIZE, j * MAP_BLOCK_SIZE, MAP_BLOCK_SIZE, MAP_BLOCK_SIZE);
             }
         }
+        STEPLABEL.setText("步數: " + BLOCK.get_step());
     }
 
     @Override
@@ -548,18 +561,94 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_R)
-            BLOCK.goto_start();
-        else
-            BLOCK.move(e.getKeyCode(), MAP);
+        BLOCK.move(e.getKeyCode(), MAP);
         if (BLOCK.is_fall_in_hole(MAP)) {
-            System.out.println("fall in hole");
-            // init_game();
+            // System.out.println("fall in hole");
+            // dialog
+            final JDialog d = new JDialog();
+            // create a label
+            JLabel l = new JLabel("You fall in hole");
+
+            // create a new buttons
+            JButton b1 = new JButton("重新開始");
+            JButton b2 = new JButton("離開");
+            // create a panel
+            JPanel p = new JPanel();
+            // add action listeners
+            b1.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    d.setVisible(false);
+                    BLOCK.goto_start();
+                }
+            });
+            b2.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.exit(0);
+                }
+            });
+
+            // add buttons to panel
+            p.add(b1);
+            p.add(b2);
+
+            // add panel to dialog
+            d.add(l, BorderLayout.NORTH);
+            d.add(p, BorderLayout.CENTER);
+
+            // setsize of dialog
+            d.setSize(300, 300);
+            // set dialog in center
+            d.setLocationRelativeTo(null);
+            // set visibility of dialog
+            d.setVisible(true);
+            requestFocusInWindow();
+
             BLOCK.goto_start();
+
         } else if (BLOCK.is_finish(MAP)) {
-            System.out.println("You Win");
-            init_game();
+            // System.out.println("You Win");
+            // dialog
+            final JDialog d = new JDialog();
+            // create a label
+            JLabel l = new JLabel("You Win");
+            // create a new buttons
+            JButton b1 = new JButton("重新開始");
+            JButton b2 = new JButton("離開");
+            JLabel l2 = new JLabel("花費步數: " + BLOCK.get_step());
+            // create a panel
+            JPanel p = new JPanel();
+            // add action listeners
+            b1.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    d.setVisible(false);
+                    init_game();
+                }
+            });
+
+            b2.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.exit(0);
+                }
+            });
+
+            // add buttons to panel
+            p.add(b1);
+            p.add(b2);
+            p.add(l2);
+
+            // add panel to dialog
+            d.add(l, BorderLayout.NORTH);
+            d.add(p, BorderLayout.CENTER);
+            d.add(l2, BorderLayout.SOUTH);
+            // setsize of dialog
+            d.setSize(300, 300);
+            // set dialog in center
+            d.setLocationRelativeTo(null);
+            // set visibility of dialog
+            d.setVisible(true);
+            requestFocusInWindow();
         }
+
         repaint();
 
     }

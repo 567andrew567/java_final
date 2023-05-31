@@ -561,6 +561,11 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_R) {
+            BLOCK.goto_start();
+            repaint();
+            return;
+        }
         BLOCK.move(e.getKeyCode(), MAP);
         if (BLOCK.is_fall_in_hole(MAP)) {
             // System.out.println("fall in hole");
@@ -587,16 +592,24 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
                 }
             });
 
-            // add buttons to panel
             p.add(b1);
             p.add(b2);
 
             // add panel to dialog
-            d.add(l, BorderLayout.NORTH);
-            d.add(p, BorderLayout.CENTER);
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            d.setLayout(gridbag);
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+
+            gridbag.setConstraints(l, c);
+            gridbag.setConstraints(p, c);
+
+            d.add(l);
+            d.add(p);
 
             // setsize of dialog
-            d.setSize(300, 300);
+            d.setSize(200, 100);
             // set dialog in center
             d.setLocationRelativeTo(null);
             // set visibility of dialog
@@ -637,11 +650,20 @@ class final_game_panel extends JPanel implements KeyListener, MouseMotionListene
             p.add(l2);
 
             // add panel to dialog
-            d.add(l, BorderLayout.NORTH);
-            d.add(p, BorderLayout.CENTER);
-            d.add(l2, BorderLayout.SOUTH);
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            d.setLayout(gridbag);
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            // set l2 in center
+            gridbag.setConstraints(l2, c);
+
+            d.add(l, c);
+            d.add(p, c);
+            d.add(l2, c);
+
             // setsize of dialog
-            d.setSize(300, 300);
+            d.setSize(200, 150);
             // set dialog in center
             d.setLocationRelativeTo(null);
             // set visibility of dialog
